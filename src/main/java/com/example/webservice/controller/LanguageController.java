@@ -1,6 +1,8 @@
 package com.example.webservice.controller;
 
 
+import com.example.webservice.Replay;
+import com.example.webservice.ReplayOk;
 import com.example.webservice.models.Languages;
 import com.example.webservice.service.LanguageServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,35 +34,65 @@ public class LanguageController {
     }
 
     @PostMapping("/language")
-    public ResponseEntity<Languages> createLanguage(@Valid @RequestBody Languages languages) {
+    public ResponseEntity<Replay> createLanguage(@Valid @RequestBody Languages languages) {
         try {
             Languages language = languageService
                     .save(new Languages(languages.getId(), languages.getName(), languages.getDescription(), languages.getRating()));
-            return new ResponseEntity<>(language, HttpStatus.CREATED);
+
+            Replay replay = new Replay();
+            replay.state = "ok";
+            replay.body = language;
+
+            return new ResponseEntity<>(replay, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PutMapping("/language/{name}")
-    public Languages updateLanguage(@PathVariable(value = "name") String languageByName,
+    public ResponseEntity<Replay> updateLanguage(@PathVariable(value = "name") String languageByName,
                            @Valid @RequestBody Languages languages) {
 
         Languages language = languageService.getLanguageByName(languageByName);
 
-        language.setName(languages.getName());
-        language.setDescription(languages.getDescription());
-        language.setRating(languages.getRating());
 
-        return languageService.save(language);
+        try {
+
+            if(languages.getName() != null) {
+                language.setName(languages.getName());
+            }
+
+            if(languages.getDescription() != null) {
+                language.setDescription(languages.getDescription());
+            }
+
+            if(languages.getRating() != 0) {
+                language.setRating(languages.getRating());
+            }
+
+            language = languageService.save(language);
+
+            Replay replay = new Replay();
+            replay.state = "ok";
+            replay.body = language;
+
+            return new ResponseEntity<>(replay, HttpStatus.CREATED);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping("/language/{name}")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity deleteBook(@PathVariable(value = "name") String languageByName) {
+    //@ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<ReplayOk> deleteBook(@PathVariable(value = "name") String languageByName) {
         Languages language = languageService.getLanguageByName(languageByName);
 
         languageService.delete(language);
-        return ResponseEntity.ok().build();
+
+        ReplayOk replay = new ReplayOk();
+        replay.state = "ok";
+
+        return new ResponseEntity<>(replay, HttpStatus.CREATED);
     }
 }
