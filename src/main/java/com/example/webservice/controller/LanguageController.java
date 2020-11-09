@@ -4,6 +4,7 @@ package com.example.webservice.controller;
 import com.example.webservice.models.Languages;
 import com.example.webservice.service.LanguageServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,8 +32,14 @@ public class LanguageController {
     }
 
     @PostMapping("/language")
-    public Languages createLanguage(@Valid @RequestBody Languages languages) {
-        return languageService.save(languages);
+    public ResponseEntity<Languages> createLanguage(@Valid @RequestBody Languages languages) {
+        try {
+            Languages language = languageService
+                    .save(new Languages(languages.getId(), languages.getName(), languages.getDescription(), languages.getRating()));
+            return new ResponseEntity<>(language, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping("/language/{name}")
@@ -49,6 +56,7 @@ public class LanguageController {
     }
 
     @DeleteMapping("/language/{name}")
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity deleteBook(@PathVariable(value = "name") String languageByName) {
         Languages language = languageService.getLanguageByName(languageByName);
 

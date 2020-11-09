@@ -6,6 +6,5 @@ import com.example.webservice.models.Languages;
 
 @Repository
 public interface LanguageRepository extends CrudRepository<Languages, Integer> {
-
     Languages findByName(String name);
 }
